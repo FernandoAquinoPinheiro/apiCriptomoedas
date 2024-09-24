@@ -1,119 +1,127 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from "react-native";
-import { firestore } from "../Firebase";
-import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import React,{ useEffect, useState } from "react";
+import { View,Text,StyleSheet,FlatList, TouchableOpacity,Alert,ImageBackground } from "react-native";
+import { firestore } from "../Firebase"; 
+import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore"; 
 
-export default function Home({ navigation }) {
+export default function Home({navigation}) {
+           
     const [criptos, setCriptos] = useState([]);
 
     async function deleteCripto(id) {
-        try {
-            await deleteDoc(doc(firestore, "tbmoeda", id));
-            Alert.alert("Criptomoeda deletada com sucesso.");
-        } catch (error) {
-            console.error("Erro ao deletar criptomoeda.", error);
+        try{
+            await deleteDoc(doc(firestore,'tbmoeda',id));
+            Alert.alert("A criptomoeda foi deletada.")
+        }catch(error){
+            console.error("Erro ao deletar.", error)
         }
     }
-
-    useEffect(() => {
-        const unsubscribe = onSnapshot(collection(firestore, 'tbmoeda'), (querySnapshot) => {
+       
+    useEffect(()=>{
+        const unsubcribe = onSnapshot(collection(firestore,'tbmoeda'),(querySnapshot)=>{
             const lista = [];
-            querySnapshot.forEach((doc) => {
-                lista.push({ ...doc.data(), id: doc.id });
+            querySnapshot.forEach((doc)=>{
+                lista.push({...doc.data(), id: doc.id});
             });
             setCriptos(lista);
         });
-        return () => unsubscribe();
-    }, []);
+        return () => unsubcribe();
+    },[]);
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Lista de Criptomoedas</Text>
-            <FlatList
+    return(
+        <View style={estilo.container}>
+             <ImageBackground source={require('../assets/fundoHome.jpg')}  style={{width: '100%', color:'red', fontSize:40, height: '100%', resizeMode:'contain', }}>   
+            <View>
+                <Text style={estilo.titulo} >Lista de Criptomoedas</Text>
+            </View>
+            <FlatList 
                 data={criptos}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={styles.cryptoContainer}>
-                        <TouchableOpacity
-                            onPress={() =>
-                                navigation.navigate("AlteraCriptos", {
-                                    id: item.id,
-                                    nomeCripto: item.nomeCripto,
-                                    siglaCripto: item.siglaCripto,
-                                    valorCripto: item.valorCripto,
-                                })
-                            }
-                        >
-                            <View style={styles.itemContainer}>
-                                <Text>Criptomoeda: <Text>{item.nomeCripto}</Text></Text>
-                                <Text>Sigla: <Text>{item.siglaCripto}</Text></Text>
-                                <Text>Valor: <Text>{item.valorCripto}</Text></Text>
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() => deleteCripto(item.id)}
-                        >
-                            <Text style={styles.deleteText}>X</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                renderItem={({item})=>{
+                    return(
+                        <View style={estilo.criptosstyle}>
+                            <ImageBackground source={require('../assets/fundoCripto.jpg')} style={{width: '100%', height: '100%',  resizeMode: 'contain',}}> 
+                            <TouchableOpacity onPress={()=>navigation.navigate("Alterar",{
+                                id: item.id,
+                                nomeCripto: item.nomeCripto,
+                                siglaCripto: item.siglaCripto,
+                                valorCripto: item.valorCripto
+                            })}>
+                                <View style={estilo.itens}>
+                                    <Text style={estilo.nomeCripto}> Criptomoeda: <Text >{item.nomeCripto}</Text></Text>
+                                    <Text style={estilo.nomeCripto}> Sigla: <Text>{item.siglaCripto}</Text></Text>
+                                    <Text style={estilo.nomeCripto}> Valor: <Text>{item.valorCripto}</Text></Text>
+                                </View>
+                            </TouchableOpacity>
+                            <View style={estilo.botaodeletar}>
+                                <TouchableOpacity onPress={()=>{deleteCripto(item.id)}}>
+                                <Text>X</Text>
+                                </TouchableOpacity>    
+                            </View>  
+                             </ImageBackground>   
+                        </View>    
+                    );
+                }}
             />
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => navigation.navigate('CadastrarCriptos')}
-            >
-                <Text style={styles.addText}>+</Text>
+            <TouchableOpacity onPress={()=> navigation.navigate("Cadastrar")}>
+                <Text>+</Text>
             </TouchableOpacity>
+            </ImageBackground> 
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+const estilo = StyleSheet.create({
+    container:{
+      flex:1,
+      justifyContent: 'center',
+      alignItems: 'center'
     },
-    title: {
-        marginTop: 50,
-        fontSize: 30,
+    titulo:{
+      marginTop: 50,
+      fontSize:30,
+        color: 'white',
+        left: 50
     },
-    itemContainer: {
-        marginHorizontal: 10,
-        marginVertical: 10,
-        padding: 10,
-    },
-    cryptoContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginHorizontal: 10,
-        marginVertical: 10,
-        padding: 10,
-        backgroundColor: '#0000CD',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    deleteButton: {
-        marginLeft: 10,
-    },
-    deleteText: {
+    itens:{
         color: 'red',
-        fontSize: 20,
+        marginHorizontal: 10,
+        marginVertical: 10,
+        padding: 10,
     },
-    addButton: {
-        backgroundColor: '#ffffff',
-        borderRadius: 50,
-        position: 'absolute',
-        right: 20,
-        bottom: 40,
-        justifyContent: "center",
-        alignItems: "center",
-        width: 50,
-        height: 50,
+    nomeCripto: {
+        fontSize: 25,
+        color:"white",
     },
-    addText: {
-        fontSize: 30,
-        color: '#0000CD',
+    titulocriptos:{
+        fontSize: 13,
+        color:'#fff',
     },
+    textocriptos:{
+        fontWeight: "bold",
+    },
+    criptosstyle:{
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 10,
+      marginVertical: 10,
+      padding: 10,
+      backgroundColor: '#fff',
+      borderRadius:10
+    },
+    botaodeletar:{
+        fontSize: 50,
+        zIndex:1,
+        color:'white',
+      textAlignVertical: 'center',
+      marginVertical: 20,
+      left: 0,
+    },
+    addbutton:{
+    backgroundColor: '#ffffff',
+    borderRadius: 50,
+    position: 'absolute',
+    left: 20,
+    bottom: 40,
+    justifyContent: "center",
+    alignItems: "center"
+    }
 });
